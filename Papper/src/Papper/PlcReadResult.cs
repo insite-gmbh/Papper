@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Papper
 {
@@ -10,6 +12,7 @@ namespace Papper
     public struct PlcReadResult : IEquatable<PlcReadResult>
     {
         private readonly int _dot;
+        private static readonly Regex _regexSplitByDot = new("[.]{1}(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))", RegexOptions.Compiled);
 
         /// <summary>
         /// Full address is composed of mapping and variable
@@ -29,12 +32,12 @@ namespace Papper
         /// <summary>
         /// mapping part of the address
         /// </summary>
-        public string Mapping => _dot == -1 ? Address : Address.Substring(0, _dot);
+        public string Mapping => _dot == -1 ? Address : Address[.._dot];
 
         /// <summary>
         /// variable part of the address.
         /// </summary>
-        public string Variable => _dot == -1 ? string.Empty : Address.Substring(_dot + 1);
+        public string Variable => _dot == -1 ? string.Empty : Address[(_dot + 1)..];
 
 
         /// <summary>
@@ -48,7 +51,15 @@ namespace Papper
             Address = address ?? ExceptionThrowHelper.ThrowArgumentNullException<string>(nameof(address));
             Value = value;
             ActionResult = executionResult;
-            _dot = address == null ? -1 : address.IndexOf(".", System.StringComparison.InvariantCulture);
+            if (address == null)
+            {
+                _dot = -1;
+            }
+            else
+            {
+                Match firstMatch = _regexSplitByDot.Match(address);
+                _dot = firstMatch.Success ? firstMatch.Index : -1;
+            }
         }
 
 
@@ -57,7 +68,12 @@ namespace Papper
         /// </summary>
         /// <param name="mapping">mapping to test</param>
         /// <returns></returns>
-        public bool IsPartOfMapping(string mapping) => mapping.AsSpan().SequenceEqual(Address.AsSpan().Slice(0, Address!.IndexOf(".", StringComparison.InvariantCulture)));
+        public bool IsPartOfMapping(string mapping)
+        {
+            Match firstMatch = _regexSplitByDot.Match(Address);
+            if (!firstMatch.Success) return false;
+            return mapping.AsSpan().SequenceEqual(Address.AsSpan()[..firstMatch.Index]);
+        }
 
         public override bool Equals(object? obj) => obj is PlcReadResult result &&
                                                     Address == result.Address &&
@@ -68,21 +84,14 @@ namespace Papper
 
         public override int GetHashCode()
         {
-            var hashCode = 1249096101;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Address);
-            hashCode = hashCode * -1521134295 + EqualityComparer<object?>.Default.GetHashCode(Value);
-            hashCode = hashCode * -1521134295 + ActionResult.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Mapping);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Variable);
-            return hashCode;
+            return HashCode.Combine(Address, Value, ActionResult, Mapping, Variable);
         }
 
         public static bool operator ==(PlcReadResult left, PlcReadResult right) => left.Equals(right);
 
         public static bool operator !=(PlcReadResult left, PlcReadResult right) => !(left == right);
 
-        public bool Equals(PlcReadResult other) => other != null &&
-                                                    Address == other.Address &&
+        public bool Equals(PlcReadResult other) => Address == other.Address &&
                                                     EqualityComparer<object?>.Default.Equals(Value, other.Value) &&
                                                     ActionResult == other.ActionResult &&
                                                     Mapping == other.Mapping &&

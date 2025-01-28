@@ -1,6 +1,7 @@
 ﻿using Papper.Attributes;
 
 #pragma warning disable CA1819 // Properties should not return arrays
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 namespace Papper.Tests.Mappings
 {
     [Mapping("ARRAY_TEST_MAPPING_1", "DB21", 0)]
@@ -11,7 +12,9 @@ namespace Papper.Tests.Mappings
     public class ArrayTestMapping
     {
         [ArrayBounds(1, 50000, 0)]
+
         public byte[] BigByteArray { get; set; }
+
 
         [ArrayBounds(1, 50000, 0)]
         public char[] BigCharArray { get; set; }
@@ -49,3 +52,4 @@ namespace Papper.Tests.Mappings
 
 
 #pragma warning restore CA1819 // Properties should not return arrays
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

@@ -3,7 +3,7 @@
 using Papper.Attributes;
 using System;
 
-namespace Insite.Customer.Data.DB_BST1_Regal_1_Konfig
+namespace Papper.Tests.Mappings.Regal
 {
 
 

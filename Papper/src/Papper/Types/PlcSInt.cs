@@ -20,8 +20,17 @@ namespace Papper.Types
             => data.IsEmpty ? default : unchecked((sbyte)data[plcObjectBinding.Offset]);
 
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
-         => data[plcObjectBinding.Offset] = (byte)unchecked((sbyte)value);
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        {
+            if (value is sbyte sb)
+            {
+                data[plcObjectBinding.Offset] = (byte)unchecked(sb);
+            }
+            else
+            {
+                data[plcObjectBinding.Offset] = (byte)unchecked(0);
+            }
+        }
 
     }
 }

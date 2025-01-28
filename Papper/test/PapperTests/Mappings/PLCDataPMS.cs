@@ -2,7 +2,7 @@
 using Papper.Attributes;
 #pragma warning disable CA1707 // Identifiers should not contain underscores
 #pragma warning disable CA1819 // Properties should not return arrays
-namespace PMSComponentHost.VTagStorerLoader
+namespace Papper.Tests.Mappings
 {
     public class UDTTemplateGeneral_ColdTestTA010
     {

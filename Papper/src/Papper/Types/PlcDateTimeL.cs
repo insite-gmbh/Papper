@@ -8,7 +8,8 @@ namespace Papper.Types
     {
         // Use share size for this data type, we will never change the size
         private static readonly PlcSize _size = new() { Bytes = 12 };
-        private static readonly DateTime _epochTime = new(1970, 01, 01, 00, 00, 00);
+        private static readonly DateTime _minValue = new(1970, 01, 01, 00, 00, 00, 0);
+        private static readonly DateTime _maxValue = AddNanoseconds(new DateTime(2262, 04, 11, 23, 47, 16), 854775807);
         public override Type DotNetType => typeof(DateTime);
 
         public PlcDateTimeL(string name) : base(name)
@@ -18,26 +19,47 @@ namespace Papper.Types
         {
             if (data.IsEmpty)
             {
-                return _epochTime;
+                return _minValue;
             }
-            var source = data.Slice(plcObjectBinding.Offset);
+            var source = data[plcObjectBinding.Offset..];
             var year = (int)BinaryPrimitives.ReadUInt16BigEndian(source);
-            var nanoseconds = (int)(BinaryPrimitives.ReadUInt32BigEndian(source.Slice(8)));
-            return AddNanoseconds(new DateTime(year,
+            var nanoseconds = (int)(BinaryPrimitives.ReadUInt32BigEndian(source[8..]));
+            if (year >= 1970 && year <= 2262)
+            {
+                try
+                {
+                    return AddNanoseconds(new DateTime(year,
                                            source[2],
                                            source[3],
                                            source[5],
                                            source[6],
-                                           source[7], 
+                                           source[7],
                                            DateTimeKind.Unspecified),
                                            nanoseconds);
+                }
+                catch (ArgumentOutOfRangeException)
+                { 
+                }
+            }
+            return _minValue;
         }
 
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
-            var dt = (DateTime)value;
-            var destination = data.Slice(plcObjectBinding.Offset);
+            var dt = value is DateTime d ? d : _minValue;
+
+            if(dt < _minValue)
+            {
+                dt = _minValue;
+            }
+            else if(dt > _maxValue)
+            {
+                dt = _maxValue;
+            }
+
+
+            var destination = data[plcObjectBinding.Offset..];
             BinaryPrimitives.WriteUInt16BigEndian(destination, (ushort)dt.Year);
             destination[2] = (byte)dt.Month;
             destination[3] = (byte)dt.Day;
@@ -45,7 +67,7 @@ namespace Papper.Types
             destination[5] = (byte)dt.Hour;
             destination[6] = (byte)dt.Minute;
             destination[7] = (byte)dt.Second;
-            BinaryPrimitives.WriteUInt32LittleEndian(destination.Slice(8), (uint)((dt.Millisecond * 1000000) + GetNanoseconds(dt)));
+            BinaryPrimitives.WriteUInt32LittleEndian(destination[8..], (uint)((dt.Millisecond * 1000000) + GetNanoseconds(dt)));
         }
 
 

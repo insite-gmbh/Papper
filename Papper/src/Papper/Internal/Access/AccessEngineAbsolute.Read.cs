@@ -49,21 +49,18 @@ namespace Papper.Access
                                                               Func<IEnumerable<KeyValuePair<string, PlcObjectBinding>>, IEnumerable<KeyValuePair<string, PlcObjectBinding>>>? filter = null,
                                                               bool returnRawDataResult = false)
         {
-            if (filter == null)
-            {
-                filter = (x) => x;
-            }
-            return executions.Where(exec => exec != null)
+            filter ??= (x) => x;
+            return [.. executions.Where(exec => exec != null)
                              .GroupBy(exec => exec!.ExecutionResult) // Group by execution result
                              .Where(res => res.Key == ExecutionResult.Ok) // filter by OK results
                              .SelectMany(group => filter(group.SelectMany(g => g!.Bindings))
                                                        .Select(b => new PlcReadResult(b.Key,
                                                                                       ConvertToResult(b.Value, returnRawDataResult),
                                                                                       group.Key)
-                                                       )).ToArray();
+                                                       ))];
         }
 
-        private static bool HasChangesSinceLastRun(Execution exec, DateTime? changedAfter) => changedAfter == null || exec.LastChange > changedAfter;
+        private static bool HasChangesSinceLastRun(Execution exec, DateTime? changedAfter) => changedAfter == null || exec.LastChange > changedAfter || exec.PlcRawData.LastUpdate > changedAfter;
 
         private static object? ConvertToResult(PlcObjectBinding binding, bool returnRawDataResult = false)
         {

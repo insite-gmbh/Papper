@@ -16,7 +16,7 @@ namespace Papper.Types
         public override object ConvertFromRaw(PlcObjectBinding plcObjectBinding, Span<byte> data)
          => (data == null || data.IsEmpty) ? default : data.GetBcdWord(plcObjectBinding.Offset);
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
             var subset = Convert.ToInt32(value, CultureInfo.InvariantCulture).SetBcdWord();
             for (var i = 0; i < subset.Length; i++)

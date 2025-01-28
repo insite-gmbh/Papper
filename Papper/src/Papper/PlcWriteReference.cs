@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Papper
 {
@@ -9,7 +10,7 @@ namespace Papper
     public struct PlcWriteReference : IPlcReference, IEquatable<PlcWriteReference>
     {
         private readonly int _dot;
-
+        private static readonly Regex _regexSplitByDot = new("[.]{1}(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))", RegexOptions.Compiled);
 
         /// mapping part of the address
         /// </summary>
@@ -32,18 +33,35 @@ namespace Papper
         public object Value { get; private set; }
 
         /// <summary>
-        /// Create <see cref="PlcReadReference"/> from an address and a value
+        /// Create <see cref="PlcWriteReference"/> from an address and a value
         /// </summary>
         /// <param name="address"> [Mapping].[Variable]</param>
         /// <param name="value">Value to write</param>
         /// <returns>An instance of a <see cref="PlcWriteReference"/></returns>
         public static PlcWriteReference FromAddress(string address, object? value) => new(address, value);
 
+        /// <summary>
+        /// Create <see cref="PlcWriteReference"/> from another reference and a value
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static PlcWriteReference FromPlcReference(IPlcReference reference, object? value) => new(reference.Address, value);
+
+
         public PlcWriteReference(string address, object? value)
         {
             Address = address;
             Value = value ?? ExceptionThrowHelper.ThrowArgumentNullException<object>(nameof(value));
-            _dot = address == null ? -1 : address.IndexOf(".", System.StringComparison.InvariantCulture);
+            if (address == null)
+            {
+                _dot = -1;
+            }
+            else
+            {
+                Match firstMatch = _regexSplitByDot.Match(address);
+                _dot = firstMatch.Success ? firstMatch.Index : -1;
+            }
 
         }
 

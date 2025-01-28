@@ -9,6 +9,7 @@ namespace Papper
     {
         private readonly PlcMetaDataTree _tree = new();
         private readonly Dictionary<Type, MappingEntry> _entries = new();
+        private readonly Dictionary<string, MappingEntry> _plcTypeEntries = new();
 
         internal class MappingEntry
         {
@@ -37,6 +38,24 @@ namespace Papper
                         var plcObject = PlcObjectFactory.CreatePlcObjectFromType(type, data) ?? PlcObjectResolver.GetMapping(type.Name, _tree, type, true);
                         mappingEntry = new MappingEntry(plcObject!);
                         _entries.Add(type, mappingEntry);
+                    }
+                }
+            }
+            return mappingEntry;
+        }
+
+        internal MappingEntry? GetMappingEntryForPlcTypeName(string plcName, object? data = null)
+        {
+            if (!_plcTypeEntries.TryGetValue(plcName, out var mappingEntry))
+            {
+                lock (_plcTypeEntries)
+                {
+                    if (!_plcTypeEntries.TryGetValue(plcName, out mappingEntry))
+                    {
+                        var plcObject = PlcObjectFactory.CreatePlcObjectFromPlcTypeName(plcName, data);
+                        if (plcObject == null) return null;
+                        mappingEntry = new MappingEntry(plcObject!);
+                        _plcTypeEntries.Add(plcName, mappingEntry);
                     }
                 }
             }

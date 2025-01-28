@@ -42,13 +42,13 @@ namespace Papper.Types
                 return string.Empty;
             }
 
-            var maxLength = BinaryPrimitives.ReadInt16BigEndian(data.Slice(plcObjectBinding.Offset));
-            var curLength = BinaryPrimitives.ReadInt16BigEndian(data.Slice(plcObjectBinding.Offset + 2));
+            var maxLength = BinaryPrimitives.ReadInt16BigEndian(data[plcObjectBinding.Offset..]);
+            var curLength = BinaryPrimitives.ReadInt16BigEndian(data[(plcObjectBinding.Offset + 2)..]);
             var take = Math.Min(Math.Min(maxLength, curLength), Size == null ? 0 : Size.Bytes - 4) * 2;
             return Encoding.BigEndianUnicode.GetString(data.Slice(plcObjectBinding.Offset + 4, take).ToArray());
         }
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
             var maxLength = Size == null ? (short)0 : Convert.ToInt16((Size.Bytes / 2) - 2);
             var i = plcObjectBinding.Offset;
@@ -58,10 +58,10 @@ namespace Papper.Types
             var fill = string.Empty;
             if (value != null)
             {
-                var str = value.ToString();
+                var str = value.ToString() ?? string.Empty;
                 var curLength = Convert.ToInt16(str.Length);
                 var take = Math.Min(maxLength, curLength);
-                fill = str.Substring(0, take);
+                fill = str[..take];
 
                 BinaryPrimitives.TryWriteInt16BigEndian(data.Slice(i, 2), take);
                 i += 2;

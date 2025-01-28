@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Papper
 {
@@ -10,7 +11,7 @@ namespace Papper
     public struct PlcWriteResult : IEquatable<PlcWriteResult>
     {
         private readonly int _dot;
-
+        private static readonly Regex _regexSplitByDot = new("[.]{1}(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))", RegexOptions.Compiled);
 
         /// <summary>
         /// Full address is composed of mapping and variable
@@ -42,7 +43,15 @@ namespace Papper
         {
             Address = address;
             ActionResult = executionResult;
-            _dot = address == null ? -1 : address.IndexOf(".", System.StringComparison.InvariantCulture);
+            if (address == null)
+            {
+                _dot = -1;
+            }
+            else
+            {
+                Match firstMatch = _regexSplitByDot.Match(address);
+                _dot = firstMatch.Success ? firstMatch.Index : -1;
+            }
         }
 
         public override bool Equals(object? obj) => obj is PlcWriteResult result && Equals(result);

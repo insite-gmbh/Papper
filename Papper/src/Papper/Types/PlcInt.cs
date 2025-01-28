@@ -18,7 +18,7 @@ namespace Papper.Types
         public override object ConvertFromRaw(PlcObjectBinding plcObjectBinding, Span<byte> data)
             => data.IsEmpty ? default : BinaryPrimitives.ReadInt16BigEndian(data.Slice(plcObjectBinding.Offset));
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
             => BinaryPrimitives.WriteInt16BigEndian(data.Slice(plcObjectBinding.Offset), Convert.ToInt16(value, CultureInfo.InvariantCulture));
     }
 }

@@ -1,7 +1,7 @@
 using Papper.Attributes;
 using System;
 
-namespace Insite.Customer.Data.DB_Setup_AGV_BST1
+namespace Papper.Tests.Mappings.AGV
 {
     
     

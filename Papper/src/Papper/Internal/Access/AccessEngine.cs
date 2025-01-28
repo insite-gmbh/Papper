@@ -2,6 +2,8 @@
 using Papper.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using static Papper.PlcDataMapper;
 
@@ -9,7 +11,7 @@ namespace Papper.Access
 {
     internal abstract class AccessEngine : IDisposable
     {
-        internal delegate bool GetMapping(string mapping, out IEntry entry, bool allowAdd = true);
+        internal delegate bool GetMapping(string mapping, [MaybeNullWhen(false)] out IEntry entry, bool allowAdd = true);
 
 
         protected readonly ReadOperation? _readEventHandler;
@@ -55,12 +57,16 @@ namespace Papper.Access
         internal abstract List<Execution> DetermineExecutions<T>(IEnumerable<T> vars) where T : IPlcReference;
         internal abstract Dictionary<Execution, DataPack> UpdateableItems(List<Execution> executions, bool onlyOutdated, Func<IEnumerable<string>, DateTime, bool>? forceUpdate = null);
 
-        internal abstract bool GetOrAddMapping(string mapping, out IEntry entry);
+        internal abstract bool GetOrAddMapping(string mapping, [MaybeNullWhen(false)] out IEntry entry);
 
 
 
 
         protected Task ReadFromPlcAsync(IEnumerable<DataPack> packs) => _readEventHandler != null ? _readEventHandler.Invoke(packs) : Task.CompletedTask;
         protected Task WriteToPlcAsync(IEnumerable<DataPack> packs) => _writeEventHandler != null ? _writeEventHandler.Invoke(packs) : Task.CompletedTask;
+
+
+        [Conditional("DEBUG")]
+        private static void DebugOutPut(string format, params object[] attributes) => Debug.WriteLine(format, attributes);
     }
 }

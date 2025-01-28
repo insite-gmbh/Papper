@@ -16,7 +16,20 @@ namespace Papper
         /// <param name="data"></param>
         /// <returns></returns>
         public byte[] Serialize<T>(T data)
-            => Serialize(typeof(T), data);
+        {
+            var type = typeof(T);
+            if(type == typeof(object) && data != null)
+            {
+                // try to handle objects
+                type = data?.GetType();
+            }
+            if(type == null || type == typeof(object))
+            {
+                ExceptionThrowHelper.ThrowMappingAttributeNotFoundForPlcTypeNameException(type?.ToString()?? string.Empty);
+                return Array.Empty<byte>();
+            }
+            return Serialize(type, data);
+        }
 
         /// <summary>
         /// Converts a data type to a plc known format.
@@ -43,7 +56,37 @@ namespace Papper
             }
 
             var binding = entry!.BaseBinding;
-            var buffer = new byte[binding.RawData.MemoryAllocationSize]; 
+            var buffer = new byte[binding.RawData.MemoryAllocationSize == 0 ? 1 : binding.RawData.MemoryAllocationSize];
+            binding.ConvertToRaw(data, buffer);
+            return buffer;
+        }
+
+        /// <summary>
+        /// Converts a data type to a plc known format.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public byte[] Serialize(string plcTypeName, object? data)
+        {
+            if (plcTypeName == null)
+            {
+                return ExceptionThrowHelper.ThrowArgumentNullException<byte[]>(nameof(plcTypeName));
+            }
+
+            if (data == null)
+            {
+                return ExceptionThrowHelper.ThrowArgumentNullException<byte[]>(nameof(data));
+            }
+
+            var entry = _mappingEntryProvider.GetMappingEntryForPlcTypeName(plcTypeName, data);
+            if (entry == null)
+            {
+                ExceptionThrowHelper.ThrowMappingAttributeNotFoundForPlcTypeNameException(plcTypeName);
+            }
+
+            var binding = entry!.BaseBinding;
+            var buffer = new byte[binding.RawData.MemoryAllocationSize == 0 ? 1 : binding.RawData.MemoryAllocationSize];
             binding.ConvertToRaw(data, buffer);
             return buffer;
         }
@@ -77,6 +120,33 @@ namespace Papper
 
             var binding = entry!.BaseBinding;
             if (type != typeof(string) && data.Length < binding.Size)
+            {
+                ExceptionThrowHelper.ThrowArgumentOutOfRangeException(nameof(data));
+            }
+
+            return binding.ConvertFromRaw(data);
+        }
+
+        public object Deserialize(string plcTypeName, byte[] data)
+        {
+            if (plcTypeName == null)
+            {
+                return ExceptionThrowHelper.ThrowArgumentNullException<object>(nameof(plcTypeName));
+            }
+
+            if (data == null)
+            {
+                return ExceptionThrowHelper.ThrowArgumentNullException<object>(nameof(data));
+            }
+
+            var entry = _mappingEntryProvider.GetMappingEntryForPlcTypeName(plcTypeName);
+            if (entry == null)
+            {
+                ExceptionThrowHelper.ThrowMappingAttributeNotFoundForPlcTypeNameException(plcTypeName!);
+            }
+
+            var binding = entry!.BaseBinding;
+            if (entry.PlcObject.DotNetType != typeof(string) && data.Length < binding.Size)
             {
                 ExceptionThrowHelper.ThrowArgumentOutOfRangeException(nameof(data));
             }

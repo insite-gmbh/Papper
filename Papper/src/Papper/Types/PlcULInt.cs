@@ -15,9 +15,9 @@ namespace Papper.Types
             => Size = _size;
 
         public override object ConvertFromRaw(PlcObjectBinding plcObjectBinding, Span<byte> data)
-            => data.IsEmpty ? default : BinaryPrimitives.ReadUInt64BigEndian(data.Slice(plcObjectBinding.Offset));
+            => data.IsEmpty ? default : BinaryPrimitives.ReadUInt64BigEndian(data[plcObjectBinding.Offset..]);
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
-            => BinaryPrimitives.WriteUInt64BigEndian(data.Slice(plcObjectBinding.Offset), Convert.ToUInt64(value, CultureInfo.InvariantCulture));
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+            => BinaryPrimitives.WriteUInt64BigEndian(data[plcObjectBinding.Offset..], Convert.ToUInt64(value, CultureInfo.InvariantCulture));
     }
 }

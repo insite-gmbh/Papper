@@ -2,7 +2,7 @@
 
 
 
-namespace Insite.Customer.Data.DB_IPSC_Konfig
+namespace Papper.Tests.Mappings
 {
 
 

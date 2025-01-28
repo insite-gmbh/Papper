@@ -7,7 +7,8 @@ namespace Papper.Types
     {
         // Use share size for this data type, we will never change the size
         private static readonly PlcSize _size = new() { Bytes = 8 };
-        private static readonly DateTime _epochTime = new(1990, 01, 01, 00, 00, 00);
+        private static readonly DateTime _minValue = new(1970, 01, 01, 00, 00, 00, 0);
+        private static readonly DateTime _maxValue = new(2089, 12, 31, 23, 59, 59, 999);
         public override Type DotNetType => typeof(DateTime);
 
 
@@ -18,7 +19,7 @@ namespace Papper.Types
         {
             if (data.IsEmpty)
             {
-                return _epochTime;
+                return _minValue;
             }
 
             int bt = data[plcObjectBinding.Offset];
@@ -67,12 +68,22 @@ namespace Papper.Types
                 }
                 catch (Exception) { }
             }
-            return _epochTime;
+            return _minValue;
         }
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
-            var dateTime = (DateTime)value;
+            var dateTime = value is DateTime dt ? dt : _minValue;
+
+            if (dateTime < _minValue)
+            {
+                dateTime = _minValue;
+            }
+            else if (dateTime > _maxValue)
+            {
+                dateTime = _maxValue;
+            }
+
 
             var tmp = dateTime.Year - ((dateTime.Year / 100) * 100);
             data[plcObjectBinding.Offset] = Convert.ToByte((tmp / 10) << 4 | tmp % 10);

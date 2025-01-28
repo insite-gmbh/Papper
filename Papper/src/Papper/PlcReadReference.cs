@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Papper
 {
@@ -8,6 +9,7 @@ namespace Papper
     public struct PlcReadReference : IPlcReference, System.IEquatable<PlcReadReference>
     {
         private readonly int _dot;
+        private static readonly Regex _regexSplitByDot = new("[.]{1}(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))", RegexOptions.Compiled);
 
         /// <summary>
         /// mapping part of the address
@@ -32,11 +34,27 @@ namespace Papper
         /// <returns></returns>
         public static PlcReadReference FromAddress(string address) => new(address);
 
+        /// <summary>
+        /// Create <see cref="PlcReadReference"/> from another reference and a value
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static PlcReadReference FromPlcReference(IPlcReference reference) => new(reference.Address);
+
 
         public PlcReadReference(string address)
         {
             Address = address;
-            _dot = address == null ? -1 : address.IndexOf(".", System.StringComparison.InvariantCulture);
+            if (address == null)
+            {
+                _dot = -1;
+            }
+            else
+            {
+                Match firstMatch = _regexSplitByDot.Match(address);
+                _dot = firstMatch.Success ? firstMatch.Index : -1;
+            }
         }
 
 
@@ -84,6 +102,6 @@ namespace Papper
 
         public static bool operator !=(PlcReadReference left, PlcReadReference right) => !(left == right);
 
-        public bool Equals(PlcReadReference other) => other != null && Mapping == other.Mapping && Variable == other.Variable && Address == other.Address;
+        public bool Equals(PlcReadReference other) => Mapping == other.Mapping && Variable == other.Variable && Address == other.Address;
     }
 }

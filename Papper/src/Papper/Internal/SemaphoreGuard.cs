@@ -37,7 +37,7 @@ namespace Papper.Internal
         {
             if (IsDisposed)
             {
-                ExceptionThrowHelper.ThrowObjectDisposedException(ToString());
+                ExceptionThrowHelper.ThrowObjectDisposedException(ToString() ?? string.Empty);
             }
             _semaphore.Release();
             _semaphore = null!;

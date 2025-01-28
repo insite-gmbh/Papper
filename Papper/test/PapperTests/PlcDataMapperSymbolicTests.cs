@@ -1,16 +1,15 @@
-﻿using Insite.Customer.Data;
-using Insite.Customer.Data.DB_BST1_Geraete_1_Konfig;
-using Insite.Customer.Data.DB_BST1_Regal_1_Konfig;
-using Insite.Customer.Data.DB_BST3_ChargenRV;
-using Insite.Customer.Data.DB_IPSC_Konfig;
-using Insite.Customer.Data.DB_Setup_AGV_BST1;
-using Insite.Customer.Data.DB_SpindlePos_BST1;
-using Insite.Customer.Data.DB_ZK_Storage_BandG;
+
 using Insite.Customer.Data.DI_PGS_BST1;
+using Papper.Attributes;
 using Papper.Extensions.Metadata;
 using Papper.Extensions.Notification;
 using Papper.Tests.Mappings;
-using PapperTests.Mappings;
+using Papper.Tests.Mappings.AGV;
+using Papper.Tests.Mappings.BstAbw;
+using Papper.Tests.Mappings.ChargenRV;
+using Papper.Tests.Mappings.ChargenRV2;
+using Papper.Tests.Mappings.DeviceConfig;
+using Papper.Tests.Mappings.Regal;
 using System;
 using System.Buffers.Binary;
 using System.Collections;
@@ -59,6 +58,7 @@ namespace Papper.Tests
             _papper.AddMapping(typeof(SampleDataAccessNames));
             _papper.AddMapping(typeof(DB_TestCTT));
             _papper.AddMapping(typeof(DB_ZK_Storage_BandG));
+            _papper.AddMapping(typeof(DB_Setting_BST1));
             _papper.AddMapping(typeof(DI_PGS_BST1));
 
         }
@@ -124,7 +124,7 @@ namespace Papper.Tests
         [InlineData(nameof(DB_BST1_Regal_1_Konfig), 2)]
         [InlineData(nameof(DB_BST1_Geraete_1_Konfig), 1)]
         [InlineData(nameof(SampleDataAccessNames), 13)]
-        [InlineData(nameof(DI_PGS_BST1), 2)]
+        [InlineData(nameof(DI_PGS_BST1), 327)]
 
         public void TestReadableBlocks(string mapping, int expectedVariables)
         {
@@ -133,11 +133,26 @@ namespace Papper.Tests
             Assert.Equal(expectedVariables, vars.Count());
         }
 
+
+        [Fact]
+        public void TestSerialisation3()
+        {
+            string mapping = "DB_Setting_BST1";
+            Dictionary<string, object> accessDict = new()
+            {
+                    { "\"E79.4 von GeräteSS X0 FOM060 links zuweisen\"", true },
+                    { "\"E79.5[]\"", true}
+                };
+
+            Test(mapping, accessDict, false);
+        }
+
         [Fact]
         public void BitAccessTest()
         {
             string mapping = "DB_Safety";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "SafeMotion.Slots[0].Commands.TakeoverPermitted", true },
                     { "SafeMotion.Slots[0].Commands.TakeoverRefused", true},
                     { "SafeMotion.Slots[0].Motion.ManualOperation1", true},
@@ -163,7 +178,8 @@ namespace Papper.Tests
         public void Int16AccessTest()
         {
             string mapping = "DB_Safety";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "SafeMotion.Header.NumberOfActiveSlots",(short) 1 },
                     { "SafeMotion.Slots[0].AggregateDBNummer", (short)2},
                     { "SafeMotion.Slots[0].AggregateOffset", (short)3},
@@ -183,7 +199,8 @@ namespace Papper.Tests
         public void UInt16AccessTest()
         {
             string mapping = "DB_Safety";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "SafeMotion.Slots[0].UnitChecksum", (ushort)2},
                     { "SafeMotion.Slots[100].UnitChecksum", (ushort)5},
                     { "SafeMotion.Slots[254].UnitChecksum", (ushort)8},
@@ -197,7 +214,8 @@ namespace Papper.Tests
         public void UInt32AccessTest()
         {
             string mapping = "DB_Safety";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "SafeMotion.Slots[0].HmiId", (uint)3},
                     { "SafeMotion.Slots[0].AccessRightReqFromHmiId", (uint)4},
                     { "SafeMotion.Slots[100].HmiId",(uint)6},
@@ -213,7 +231,8 @@ namespace Papper.Tests
         public void DateAccessTest()
         {
             string mapping = "DB_Safety";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "SafeMotion.Header.Generated", Normalize(DateTime.Now)},
                     { "SafeMotion.Slots[0].UnitTimestamp", Normalize(DateTime.Now)},
                     { "SafeMotion.Slots[100].UnitTimestamp", Normalize(DateTime.Now)},
@@ -228,7 +247,8 @@ namespace Papper.Tests
         public void SingleAccessTest()
         {
             string mapping = "PrimitiveValuesMapping";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "Single", (float)2.2},
                 };
 
@@ -239,7 +259,8 @@ namespace Papper.Tests
         public void ArrayElementsAccessTest()
         {
             string mapping = "ARRAY_TEST_MAPPING_1";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "ByteElements[10]", (byte)0x05},
                     { "ByteElements[5]", (byte)0x06},
                     { "ByteElements[1]", (byte)0x07},
@@ -261,7 +282,8 @@ namespace Papper.Tests
         public void BigByteArrayAccessTest()
         {
             string mapping = "ARRAY_TEST_MAPPING_2";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "BigByteArray", Enumerable.Repeat<byte>(0x01,50000).ToArray()},
                 };
 
@@ -272,7 +294,8 @@ namespace Papper.Tests
         public void BigCharArrayAccessTest()
         {
             string mapping = "ARRAY_TEST_MAPPING_3";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "BigCharArray", Enumerable.Repeat<char>('a',50000).ToArray()},
                 };
 
@@ -283,7 +306,8 @@ namespace Papper.Tests
         public void BigIntArrayAccessTest()
         {
             string mapping = "ARRAY_TEST_MAPPING_4";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "BigIntArray", Enumerable.Repeat(2,5000).ToArray()},
                 };
 
@@ -296,7 +320,7 @@ namespace Papper.Tests
         public void TestStructuralAccessWithReadonlyttributes()
         {
             string mapping = "SampleData";
-            SampleData header = new SampleData
+            SampleData header = new()
             {
                 UInt16 = 1,
                 Int16 = 2,
@@ -314,7 +338,8 @@ namespace Papper.Tests
                 Bit8 = true
             };
 
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "This", header},
                 };
 
@@ -338,7 +363,7 @@ namespace Papper.Tests
         public void TestStructuralAccess()
         {
             string mapping = "DB_Safety2";
-            UDT_SafeMotionHeader origin = new UDT_SafeMotionHeader
+            UDT_SafeMotionHeader origin = new()
             {
                 Generated = DateTime.MinValue,
                 NumberOfActiveSlots = 0,
@@ -354,7 +379,7 @@ namespace Papper.Tests
                 }
             };
 
-            UDT_SafeMotionHeader header = new UDT_SafeMotionHeader
+            UDT_SafeMotionHeader header = new()
             {
                 Generated = Normalize(DateTime.Now),
                 NumberOfActiveSlots = 2,
@@ -370,7 +395,8 @@ namespace Papper.Tests
                 }
             };
 
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "SafeMotion.Header", header},
                 };
             PlcWriteResult[] writeOriginResults = _papper.WriteAsync(PlcWriteReference.FromRoot(mapping, new Dictionary<string, object> {
@@ -399,7 +425,7 @@ namespace Papper.Tests
         {
             string mapping = "DB_Safety2";
 
-            Stopwatch t = new Stopwatch();
+            Stopwatch t = new();
             t.Start();
             PlcReadResult[] result = _papper.ReadAsync(PlcReadReference.FromAddress($"{mapping}")).GetAwaiter().GetResult();
             t.Stop();
@@ -411,7 +437,7 @@ namespace Papper.Tests
         {
             string mapping = "DB_TestCTT";
 
-            Stopwatch t = new Stopwatch();
+            Stopwatch t = new();
             t.Start();
             PlcReadResult[] result1 = _papper.ReadAsync(PlcReadReference.FromAddress($"{mapping}.StartTrack")).GetAwaiter().GetResult();
             PlcReadResult[] result2 = _papper.ReadAsync(PlcReadReference.FromAddress($"{mapping}.StartTrack"), PlcReadReference.FromAddress($"{mapping}.StartEinlauf"), PlcReadReference.FromAddress($"{mapping}.StartAuslauf")).GetAwaiter().GetResult();
@@ -424,7 +450,7 @@ namespace Papper.Tests
         {
             string mapping = "DB_Safety2";
 
-            Stopwatch t = new Stopwatch();
+            Stopwatch t = new();
             t.Start();
             Task<PlcReadResult[]> result1 = _papper.ReadAsync(PlcReadReference.FromAddress($"{mapping}.SafeMotion.Header.NumberOfActiveSlots"),
                                            PlcReadReference.FromAddress($"{mapping}.SafeMotion.Header.States.ChecksumInvalid"));
@@ -439,7 +465,7 @@ namespace Papper.Tests
         {
             string mapping = "DB_Safety2";
 
-            Stopwatch t = new Stopwatch();
+            Stopwatch t = new();
             t.Start();
             short value = -1;
             await _papper.WriteAsync(PlcWriteReference.FromAddress($"{mapping}.SafeMotion.Header.NumberOfActiveSlots", (short)0)).ConfigureAwait(false);
@@ -469,7 +495,7 @@ namespace Papper.Tests
         {
             string mapping = "DB_Safety2";
 
-            Stopwatch t = new Stopwatch();
+            Stopwatch t = new();
             t.Start();
             short value = -1;
             await _papper.WriteAsync(PlcWriteReference.FromAddress($"{mapping}.SafeMotion.Header.NumberOfActiveSlots", (short)0)).ConfigureAwait(false);
@@ -500,7 +526,7 @@ namespace Papper.Tests
         [Fact]
         public async Task DataChanegOnBitsTest()
         {
-            Stopwatch t = new Stopwatch();
+            Stopwatch t = new();
             t.Start();
             await _papper.WriteAsync(PlcWriteReference.FromAddress($"DB_IDAT_MSpindleData1.IDATInterface.IDATtoPLC.Toggle", false)).ConfigureAwait(false);
 
@@ -525,7 +551,7 @@ namespace Papper.Tests
         [Fact]
         public async Task TestWriteSerializedData()
         {
-            PlcDataMapperSerializer ser = new PlcDataMapperSerializer();
+            PlcDataMapperSerializer ser = new();
 
             byte[] value = ser.Serialize(TimeTransformationRule.FromTimeZoneInfo(TimeZoneInfo.Local));
 
@@ -542,7 +568,8 @@ namespace Papper.Tests
         public void ArrayIndexAccessTest()
         {
             string mapping = "ARRAY_TEST_MAPPING_5";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "BigCharArray[1]", 'X'},
                 };
 
@@ -554,7 +581,8 @@ namespace Papper.Tests
         public void TODTest()
         {
             string mapping = "STRING_ARRAY_TEST_MAPPING_1";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "Time[1]", TimeSpan.FromHours(12)},
                     { "Time[2]", TimeSpan.FromHours(1)},
                     { "Time[3]", TimeSpan.FromSeconds(10)},
@@ -571,7 +599,8 @@ namespace Papper.Tests
         public void ReadNonExistingValue()
         {
             string mapping = "STRING_ARRAY_TEST_MAPPING";
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "XXX", "TEST1"}
                 };
 
@@ -585,19 +614,19 @@ namespace Papper.Tests
         [Fact]
         public void ConvertTest()
         {
-            Span<byte> data = new Span<byte>(new byte[] { 0x01, 0x02, 0x03, 0x04 });
+            Span<byte> data = new(new byte[] { 0x01, 0x02, 0x03, 0x04 });
 
             int v2 = BinaryPrimitives.ReadInt32BigEndian(data);
             int v3 = BinaryPrimitives.ReadInt32LittleEndian(data);
 
-            Span<byte> data1 = new Span<byte>(new byte[4]);
+            Span<byte> data1 = new(new byte[4]);
             float s = 25.4f;
             BinaryPrimitives.WriteInt32BigEndian(data1, Convert.ToInt32(s));
             float res = Convert.ToSingle(BinaryPrimitives.ReadInt32BigEndian(data1));
 
-            Span<byte> data4 = new Span<byte>(new byte[4]);
-            Converter.WriteSingleBigEndian(data4, s);
-            float x4 = Converter.ReadSingleBigEndian(data4);
+            Span<byte> data4 = new(new byte[4]);
+            BinaryPrimitives.WriteSingleBigEndian(data4, s);
+            float x4 = BinaryPrimitives.ReadSingleBigEndian(data4);
         }
 
 
@@ -607,7 +636,7 @@ namespace Papper.Tests
         public async Task TestInvalidMappings()
         {
 
-            using PlcDataMapper papper = new PlcDataMapper(960, Papper_OnRead, Papper_OnWrite, UpdateHandler, ReadMetaData, OptimizerType.Items);
+            using PlcDataMapper papper = new(960, Papper_OnRead, Papper_OnWrite, UpdateHandler, ReadMetaData, OptimizerType.Items);
             papper.AddMapping(typeof(DB_Safety));
 
             using Subscription subscription = papper.CreateSubscription(ChangeDetectionStrategy.Event);
@@ -666,7 +695,7 @@ namespace Papper.Tests
         public void TestWriteRawDataToStruct()
         {
             string mapping = "DB_Safety2";
-            UDT_SafeMotionHeader header = new UDT_SafeMotionHeader
+            UDT_SafeMotionHeader header = new()
             {
                 Generated = Normalize(DateTime.Now),
                 NumberOfActiveSlots = 2,
@@ -682,11 +711,12 @@ namespace Papper.Tests
                 }
             };
 
-            Dictionary<string, object> accessDict = new Dictionary<string, object> {
+            Dictionary<string, object> accessDict = new()
+            {
                     { "SafeMotion.Header", header},
                 };
 
-            PlcDataMapperSerializer s = new PlcDataMapperSerializer();
+            PlcDataMapperSerializer s = new();
             accessDict["SafeMotion.Header"] = s.Serialize(header);
 
             PlcWriteResult[] writeResults = _papper.WriteAsync(PlcWriteReference.FromRoot(mapping, accessDict.ToArray()).ToArray()).GetAwaiter().GetResult();
@@ -916,8 +946,8 @@ namespace Papper.Tests
 
         private static ExpandoObject ToExpando<T>(T instance)
         {
-            ExpandoObject obj = new ExpandoObject();
-            foreach (PropertyInfo item in instance.GetType().GetTypeInfo().DeclaredProperties)
+            ExpandoObject obj = new();
+            foreach (PropertyInfo item in instance.GetType().GetTypeInfo().DeclaredProperties.Where(x => x.GetCustomAttribute<IgnoreAttribute>()?.IsIgnored is not true))
             {
                 if (!item.PropertyType.Namespace.StartsWith("System", false, CultureInfo.InvariantCulture))
                 {

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 namespace Papper.Tests.Mappings
 {
         public class UDT_WorkTime_Q_Time
@@ -144,9 +144,11 @@ namespace Papper.Tests.Mappings
             public Char[] TXT1 { get; set; }    //Stand-By Info Text 1
 
             [ArrayBounds(1, 80, 0)]
-            public Char[] TXT2 { get; set; }    //Stand-By Info Text 2
 
-            [ArrayBounds(1, 80, 0)]
+        public Char[] TXT2 { get; set; }    //Stand-By Info Text 2
+
+
+        [ArrayBounds(1, 80, 0)]
             public Char[] TXT3 { get; set; }    //Stand-By Info Text 3
 
             [ArrayBounds(1, 80, 0)]
@@ -385,3 +387,4 @@ namespace Papper.Tests.Mappings
 
 
 }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

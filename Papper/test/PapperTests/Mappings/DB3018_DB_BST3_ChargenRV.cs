@@ -3,7 +3,7 @@
 using Papper.Attributes;
 using System;
 
-namespace Insite.Customer.Data.DB_BST3_ChargenRV
+namespace Papper.Tests.Mappings.ChargenRV
 {
     
     

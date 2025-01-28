@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>PapperCmd Console Application</Description>
     <Authors>Benjamin</Authors>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
     <AssemblyName>PapperCmd</AssemblyName>
     <OutputType>Exe</OutputType>

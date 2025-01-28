@@ -30,7 +30,7 @@ namespace Papper.Types
         public override object ConvertFromRaw(PlcObjectBinding plcObjectBinding, Span<byte> data)
          => _referencedObject.ConvertFromRaw(plcObjectBinding, data);
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
          => _referencedObject.ConvertToRaw(value, plcObjectBinding, data);
 
         public override IEnumerable<ITreeNode> Childs => _referencedObject.Childs;

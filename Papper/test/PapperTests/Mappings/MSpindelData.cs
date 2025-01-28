@@ -2,7 +2,7 @@
 using System;
 #pragma warning disable CA1707 // Identifiers should not contain underscores
 #pragma warning disable CA1819 // Properties should not return arrays
-namespace PapperTests.Mappings
+namespace Papper.Tests.Mappings
 {
     public class UDT_IDATInterface_PLCtoIDAT
     {
