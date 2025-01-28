@@ -3,7 +3,7 @@
 using Papper.Attributes;
 using System;
 
-namespace Insite.Customer.Data
+namespace Papper.Tests.Mappings.BstAbw
 {
     
     

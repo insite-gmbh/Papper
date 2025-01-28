@@ -37,6 +37,7 @@ namespace Papper.Types
             { "TimeOfDay", typeof(PlcTimeOfDay) },
             { "LTimeOfDay", typeof(PlcLTimeOfDay) },
             { "Bit", typeof(PlcBool) },
+            { "Bool", typeof(PlcBool) },
             { "Byte", typeof(PlcByte) },
             { "SInt", typeof(PlcSInt) },
             { "USInt", typeof(PlcUSInt) },
@@ -65,6 +66,38 @@ namespace Papper.Types
             { "WChar", typeof(PlcWChar) },
             { "S7Counter", typeof(PlcS7Counter) },
         };
+
+        public static PlcObject? CreatePlcObjectFromPlcTypeName(string plcTypeName, object? value)
+        {
+            if (_typeNameMatch.TryGetValue(plcTypeName, out var plcType))
+            {
+                var plcObject = Activator.CreateInstance(plcType, plcTypeName) as PlcObject;
+
+                if (plcObject is ISupportStringLengthAttribute s)
+                {
+                    if (value is string str)
+                    {
+                        s.StringLength = str.Length;
+                    }
+                    else if (value is Array a)
+                    {
+                        s.StringLength = a.Length - 2;
+                    }
+                }
+                else if (plcObject is PlcArray)
+                {
+                    if (value is Array a && plcObject is PlcArray obj)
+                    {
+                        obj.From = 0;
+                        obj.To = a.Length - 1;
+                        obj.Dimension = 1;
+                    }
+                }
+
+                return plcObject;
+            }
+            return null;
+        }
 
         public static PlcObject? CreatePlcObjectFromType(Type t, object? value)
         {
@@ -127,7 +160,8 @@ namespace Papper.Types
                     }
                     else
                     {
-                        element = Activator.CreateInstance(typeof(PlcStruct), name, pi.PropertyType) as PlcObject;
+                        element = Activator.CreateInstance(typeof(PlcStruct), name, elementType) as PlcObject;
+                        UpdateSize(pi, element);
                     }
 
                     leafPlcObject = element;
@@ -169,7 +203,7 @@ namespace Papper.Types
             }
             else
             {
-                if (plcType != null || _typeMatch.TryGetValue(arrayIndex == null ? pi.PropertyType : pi.PropertyType.GetElementType(), out plcType))
+                if (plcType != null || _typeMatch.TryGetValue(arrayIndex == null ? pi.PropertyType : pi.PropertyType.GetElementType()!, out plcType))
                 {
                     instance = Activator.CreateInstance(plcType, arrayIndex == null ? name : name + string.Format(CultureInfo.InvariantCulture, "[{0}]", arrayIndex)) as PlcObject;
                     UpdateSize(pi, instance);

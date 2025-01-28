@@ -1,25 +1,16 @@
 ﻿using Papper.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static Papper.PlcDataMapper;
 
 namespace Papper.Access
 {
-    internal partial class AccessEngineAbsolute : AccessEngine
+    internal partial class AccessEngineAbsolute(PlcDataMapper.ReadOperation? readEventHandler,
+                                                PlcDataMapper.WriteOperation? writeEventHandler,
+                                                AccessEngine.GetMapping? getMapping) : AccessEngine(readEventHandler, writeEventHandler, getMapping)
     {
-
-
-        public AccessEngineAbsolute(ReadOperation? readEventHandler,
-                                    WriteOperation? writeEventHandler, 
-                                    GetMapping? getMapping) : base(readEventHandler, writeEventHandler, getMapping)
-        {
-        }
-
-
         internal override Dictionary<Execution, DataPack> UpdateableItems(List<Execution> executions, bool onlyOutdated, Func<IEnumerable<string>, DateTime, bool>? forceUpdate = null)
         {
             return executions.Where(exec => !onlyOutdated ||
@@ -32,23 +23,22 @@ namespace Papper.Access
 
         internal override List<Execution> DetermineExecutions<T>(IEnumerable<T> plcReferences)
         {
-            return plcReferences.GroupBy(plcReference => plcReference.Mapping)
-                                .Select((plcReferenceGroup) => GetOrAddMapping(plcReferenceGroup.Key, out var entry)
+            return [.. plcReferences.GroupBy(plcReference => plcReference.Mapping)
+                                .Select((plcReferenceGroup) => GetOrAddMapping(plcReferenceGroup.Key, out IEntry? entry)
                                                                 ? (plcReferenceGroup, entry)
                                                                 : (null, null))
                                 .Where(x => x.plcReferenceGroup != null)
-                                .SelectMany(x => x.entry.GetOperations(x.plcReferenceGroup.Select(plcReference => plcReference.Variable).ToList()))
-                                .ToList();
+                                .SelectMany(x => x.entry.GetOperations([.. x.plcReferenceGroup.Select(plcReference => plcReference.Variable)]))];
         }
 
-        internal override bool GetOrAddMapping(string mapping, out IEntry entry)
+        internal override bool GetOrAddMapping(string mapping, [MaybeNullWhen(false)] out IEntry entry)
         {
-            if(_getMapping == null)
+            if (_getMapping == null)
             {
                 entry = null!;
                 return false;
             }
-            var isAbsoluteMapping = false;
+            bool isAbsoluteMapping = false;
 
             // If the mapping is an absolute mapping we can create an entry
             switch (mapping)

@@ -7,10 +7,10 @@ namespace Papper.Internal
 {
     internal class AsyncAutoResetEvent<T>
     {
-        private static readonly Task<T> _completed = Task.FromResult<T>(default);
-        private readonly Queue<TaskCompletionSource<T>> _waits = new();
+        private static readonly Task<T?> _completed = Task.FromResult<T?>(default);
+        private readonly Queue<TaskCompletionSource<T?>> _waits = new();
         private bool _signaled;
-        private T _lastValue = default;
+        private T? _lastValue = default;
 
 
         /// <summary>
@@ -18,7 +18,7 @@ namespace Papper.Internal
         /// </summary>
         /// <param name="timeout">Maximum time to wait  (-1 = endless wait)</param>
         /// <returns>The value which was applied on calling set.</returns>
-        public Task<T> WaitAsync(int timeout = -1)
+        public Task<T?> WaitAsync(int timeout = -1)
         {
             if (timeout == 0)
             {
@@ -45,7 +45,7 @@ namespace Papper.Internal
         /// </summary>
         /// <param name="token">The waiting phase can be canceled by the source of the given token.</param>
         /// <returns>The value which was applied on calling set.</returns>
-        public Task<T> WaitAsync(CancellationToken token)
+        public Task<T?> WaitAsync(CancellationToken token)
         {
             lock (_waits)
             {
@@ -63,7 +63,7 @@ namespace Papper.Internal
                 else
                 {
                     CancellationTokenRegistration registration = default;
-                    var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    var tcs = new TaskCompletionSource<T?>(TaskCreationOptions.RunContinuationsAsynchronously);
                     if (token != CancellationToken.None && token.CanBeCanceled)
                     {
                         registration = token.Register(() =>
@@ -82,7 +82,7 @@ namespace Papper.Internal
                     }
 
                     _waits.Enqueue(tcs);
-                    return tcs.Task.ContinueWith<T>(t =>
+                    return tcs.Task.ContinueWith<T?>(t =>
                     {
                         if (token != CancellationToken.None && token.CanBeCanceled)
                         {
@@ -102,7 +102,7 @@ namespace Papper.Internal
         /// <returns>true if the value could be set.</returns>
         public bool Set(T value)
         {
-            TaskCompletionSource<T>? toRelease = null;
+            TaskCompletionSource<T?>? toRelease = null;
             lock (_waits)
             {
                 if (_waits.Count > 0)

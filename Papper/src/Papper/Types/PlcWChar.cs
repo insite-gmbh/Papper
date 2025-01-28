@@ -17,10 +17,10 @@ namespace Papper.Types
          => data.IsEmpty ? string.Empty : Encoding.BigEndianUnicode.GetString(data.Slice(plcObjectBinding.Offset, 2).ToArray());
 
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
-            Span<byte> s = Encoding.BigEndianUnicode.GetBytes(value as string);
-            s.Slice(0, 2).CopyTo(data.Slice(plcObjectBinding.Offset, 2));
+            Span<byte> s = Encoding.BigEndianUnicode.GetBytes(value is string str ? str: string.Empty);
+            s[..2].CopyTo(data.Slice(plcObjectBinding.Offset, 2));
         }
     }
 }

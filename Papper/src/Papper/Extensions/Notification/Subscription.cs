@@ -2,6 +2,7 @@
 using Papper.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,7 +78,7 @@ namespace Papper.Extensions.Notification
             if (vars != null)
             {
                 // Add Items synchrone
-                if(TryBuilAddableVariableList(vars, out var variables, true))
+                if(TryBuildAddableVariableList(vars, out var variables, true))
                 {
                     AddValidatedVariables(variables!);
                 }
@@ -220,7 +221,7 @@ namespace Papper.Extensions.Notification
                 executions = _executions?.ToList();
             }
 
-            if (executions!.IsNullOrEmpty())
+            if (executions == null || executions.IsNullOrEmpty())
             {
                 return null;
             }
@@ -385,7 +386,7 @@ namespace Papper.Extensions.Notification
 
         private async Task<bool> InternalAddItemsAsync(IEnumerable<PlcWatchReference>? vars, bool throwExceptions)
         {
-            if (TryBuilAddableVariableList(vars, out var variables, throwExceptions))
+            if (TryBuildAddableVariableList(vars, out var variables, throwExceptions))
             {
                 using (await SemaphoreGuard.Async(_semaphore).ConfigureAwait(false))
                 {
@@ -395,7 +396,7 @@ namespace Papper.Extensions.Notification
             return false;
         }
 
-        private bool TryBuilAddableVariableList(IEnumerable<PlcWatchReference>? vars, out Dictionary<string, PlcWatchReference>? variables,  bool throwExceptions)
+        private bool TryBuildAddableVariableList(IEnumerable<PlcWatchReference>? vars, out Dictionary<string, PlcWatchReference>? variables,  bool throwExceptions)
         {
             if (vars == null || !vars.Any())
             {
@@ -403,7 +404,7 @@ namespace Papper.Extensions.Notification
                 return false;
             }
 
-            variables = new Dictionary<string, PlcWatchReference>();
+            variables = [];
             foreach (var variable in vars)
             {
                 if (!_mapper.IsValidReference(variable))
@@ -447,7 +448,7 @@ namespace Papper.Extensions.Notification
         /// <param name="detect">The timestamps of the start of the current detection run. Because we need a single time for filtering not DateTime.Now</param>
         /// <param name="all">All the items updated from the plc.</param>
         /// <returns>A all items where we detect a data change.</returns>
-        private IEnumerable<KeyValuePair<string, PlcObjectBinding>> FilterChanged(DateTime detect, IEnumerable<KeyValuePair<string, PlcObjectBinding>> all)
+        private List<KeyValuePair<string, PlcObjectBinding>> FilterChanged(DateTime detect, IEnumerable<KeyValuePair<string, PlcObjectBinding>> all)
         {
             var result = new List<KeyValuePair<string, PlcObjectBinding>>();
             foreach (var binding in all)
@@ -462,8 +463,9 @@ namespace Papper.Extensions.Notification
                         if (!_lruCache.TryGetValue(binding.Key, out var saved) ||
                             (objBinding.Size == 0
                                 ? memData.Span[objBinding.Offset].GetBit(objBinding.MetaData.Offset.Bits) != saved.Data.Span[0].GetBit(objBinding.MetaData.Offset.Bits)
-                                : !memData.Slice(objBinding.Offset, size).Span.SequenceEqual(saved.Data.Slice(0, size).Span)))
+                                : !memData.Slice(objBinding.Offset, size).Span.SequenceEqual(saved.Data[..size].Span)))
                         {
+                            DebugOutPut("Subscription {0}: Change detected on {1}", Id, binding.Key);
                             result.Add(binding);
                             var data = memData.Slice(objBinding.Offset, size);
                             if (saved == null)
@@ -487,6 +489,7 @@ namespace Papper.Extensions.Notification
                     {
                         if (!_lruCache.TryGetValue(binding.Key, out var saved) || !data.Equals(saved.DataObject))
                         {
+                            DebugOutPut("Subscription {0}: Change detected on object {1}", Id, binding.Key);
                             result.Add(binding);
                             if (saved == null)
                             {
@@ -516,7 +519,7 @@ namespace Papper.Extensions.Notification
             var hasItems = vars != null && vars.Any();
             if (hasItems)
             {
-                Interval = vars.Select(x => x.WatchCycle).Min();
+                Interval = vars!.Select(x => x.WatchCycle).Min();
             }
             if (Interval <= 0 || (!hasItems && Interval < _defaultInterval))
             {
@@ -524,5 +527,8 @@ namespace Papper.Extensions.Notification
             }
         }
 
+
+        [Conditional("DEBUG")]
+        private static void DebugOutPut(string format, params object[] attributes) => Debug.WriteLine(format, attributes);
     }
 }

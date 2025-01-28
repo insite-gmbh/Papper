@@ -614,22 +614,35 @@ namespace Papper.Internal
                 PlcObject? pred = null;
                 DebugOutPut("{0}{{", name);
 
-                foreach (var pi in t.GetTypeInfo().DeclaredProperties)
+                foreach (var pi in t.GetTypeInfo().DeclaredProperties.Where(x => x.GetCustomAttribute<IgnoreAttribute>()?.IsIgnored is not true))
                 {
                     var plcObject = PlcObjectFactory.CreatePlcObject(pi);
 
                     if (plcObject is PlcArray plcObjectArray && (plcObjectArray.LeafElementType ?? plcObjectArray.ArrayType) is PlcStruct)
                     {
                         PlcArray current = plcObjectArray;
+                        var reverseList = new List<PlcArray>() { current };
                         while (current?.ArrayType is PlcArray sub)
                         {
+                            reverseList.Insert(0, sub);
                             current = sub;
                         }
 
                         if(current != null)
                         {
                             current.ArrayType = GetMetaData(tree, plcObjectArray.ElemenType!);
+
+                            if (reverseList.Count > 1)
+                            {
+                                // recalculate sizes because we added an Element Type on the leave element
+                                foreach (var item in reverseList.Skip(1))
+                                {
+                                    item.CalculateSize();
+                                }
+                            }
                         }
+
+
                     }
                     else if (plcObject is PlcStruct)
                     {

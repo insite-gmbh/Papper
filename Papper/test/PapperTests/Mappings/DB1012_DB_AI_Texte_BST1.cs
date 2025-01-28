@@ -3,7 +3,7 @@
 using Papper.Attributes;
 #pragma warning disable CA1707 // Identifiers should not contain underscores
 #pragma warning disable CA1819 // Properties should not return arrays
-namespace Insite.Customer.Data
+namespace Papper.Tests.Mappings
 {
 
 

@@ -9,24 +9,16 @@ namespace Papper.Internal
     /// <summary>
     /// Holds the execution operation
     /// </summary>
-    internal class Execution
+    internal class Execution(PlcRawData plcRawData, Dictionary<string, PlcObjectBinding> bindings, int validationTimeMS, bool symbolicAccess)
     {
-        private readonly bool _symbolicAccess;
+        private readonly bool _symbolicAccess = symbolicAccess;
 
-        public PlcRawData PlcRawData { get; private set; }
-        public Dictionary<string, PlcObjectBinding> Bindings { get; private set; }
-        public int ValidationTimeMs { get; private set; }
+        public PlcRawData PlcRawData { get; private set; } = plcRawData;
+        public Dictionary<string, PlcObjectBinding> Bindings { get; private set; } = bindings;
+        public int ValidationTimeMs { get; private set; } = validationTimeMS;
         public ExecutionResult ExecutionResult { get; private set; }
 
         public DateTime LastChange { get; private set; } = DateTime.MaxValue;
-
-        public Execution(PlcRawData plcRawData, Dictionary<string, PlcObjectBinding> bindings, int validationTimeMS, bool symbolicAccess)
-        {
-            ValidationTimeMs = validationTimeMS;
-            _symbolicAccess = symbolicAccess;
-            PlcRawData = plcRawData;
-            Bindings = bindings;
-        }
 
 
         /// <summary>
@@ -136,7 +128,7 @@ namespace Papper.Internal
             return new KeyValuePair<Execution, IEnumerable<DataPack>>(this, res);
         }
 
-        private static IEnumerable<DataPack> Create(object value, PlcObjectBinding binding, Dictionary<PlcRawData, byte[]>? memoryBuffer, int dataOffset, bool symbolicAccess)
+        private static List<DataPack> Create(object value, PlcObjectBinding binding, Dictionary<PlcRawData, byte[]>? memoryBuffer, int dataOffset, bool symbolicAccess)
         {
             static byte[] GetOrCreateBufferAndApplyValue(PlcObjectBinding plcBinding, Dictionary<PlcRawData, byte[]> dict, object value)
             {
@@ -163,7 +155,7 @@ namespace Papper.Internal
             var data = memoryBuffer != null ? GetOrCreateBufferAndApplyValue(binding, memoryBuffer, value) : null;
 
 
-            return binding.RawData.WriteSlots.Select<Slot,DataPack>(slot =>
+            return [.. binding.RawData.WriteSlots.Select<Slot,DataPack>(slot =>
             {
                 if (symbolicAccess)
                 {
@@ -190,7 +182,7 @@ namespace Papper.Internal
                     res.Data = res.Data.Slice(dataOffset + slot.Offset - binding.RawData.Offset, res.Length);
                     return res;
                 }
-            }).ToList<DataPack>();
+            })];
 
         }
 

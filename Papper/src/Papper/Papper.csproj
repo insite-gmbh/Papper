@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <Description>Papper (Plc Data Mapper) is a library to map C# data structures to S7-Plc data structures.</Description>
-    <Copyright>Copyright © Benjamin Proemmer 2016-2024</Copyright>
-    <VersionPrefix>2.2.0</VersionPrefix>
+    <Copyright>Copyright © Benjamin Proemmer 2016-2025</Copyright>
+    <VersionPrefix>2.2.1</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <AssemblyTitle>papper</AssemblyTitle>
     <Authors>Benjamin Proemmer</Authors>
-    <TargetFrameworks>net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
     <AssemblyName>Papper</AssemblyName>
     <PackageId>Papper</PackageId>
     <PackageTags>siemens plc datamapper S7</PackageTags>
@@ -20,9 +20,16 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>D:\Source\signatures\papper\papper.snk</AssemblyOriginatorKeyFile>
     <PackageReleaseNotes>
+		* added Ignore Attribute
+		* updated datetime and timepsan types to currect limits
+		* applied nullability
+		* fixed plcreal
+		* ., [ and ] in variable are now allowed if thea are between ""
 		* added additional type (LTOD)
 		* multiarray fixes
 		* after string offset calculation fix
+		* fixed multi arrays
+		* fixe multiple subscription on same area do not detect changes
 	</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>

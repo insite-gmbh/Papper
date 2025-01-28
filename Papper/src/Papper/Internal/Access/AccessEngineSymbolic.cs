@@ -1,6 +1,7 @@
 ﻿using Papper.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using static Papper.PlcDataMapper;
 
@@ -37,7 +38,7 @@ namespace Papper.Access
         }
 
 
-        internal override bool GetOrAddMapping(string mapping, out IEntry entry)
+        internal override bool GetOrAddMapping(string mapping, [MaybeNullWhen(false)] out IEntry entry)
         {
             if (_getMapping == null)
             {

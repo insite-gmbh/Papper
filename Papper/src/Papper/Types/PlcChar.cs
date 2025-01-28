@@ -22,6 +22,6 @@ namespace Papper.Types
          => data.IsEmpty ? default : Convert.ToChar(data[plcObjectBinding.Offset]);
 
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data) => data[plcObjectBinding.Offset] = value is string s ? Convert.ToByte(s.FirstOrDefault()) : Convert.ToByte(value, CultureInfo.InvariantCulture);
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data) => data[plcObjectBinding.Offset] = value is string s ? Convert.ToByte(s.FirstOrDefault()) : Convert.ToByte(value, CultureInfo.InvariantCulture);
     }
 }

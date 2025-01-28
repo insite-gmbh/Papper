@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Papper.Extensions.Notification
 {
@@ -8,6 +10,7 @@ namespace Papper.Extensions.Notification
     public struct PlcWatchReference : IPlcReference, System.IEquatable<PlcWatchReference>
     {
         private readonly int _dot;
+        private static readonly Regex _regexSplitByDot = new("[.]{1}(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))", RegexOptions.Compiled);
 
         /// <summary>
         /// mapping part of the address
@@ -55,7 +58,15 @@ namespace Papper.Extensions.Notification
         {
             Address = address;
             WatchCycle = watchCycle;
-            _dot = address == null ? -1 : address.IndexOf(".", System.StringComparison.InvariantCulture);
+            if (address == null)
+            {
+                _dot = -1;
+            }
+            else
+            {
+                Match firstMatch = _regexSplitByDot.Match(address);
+                _dot = firstMatch.Success ? firstMatch.Index : -1;
+            }
         }
 
 
@@ -125,21 +136,14 @@ namespace Papper.Extensions.Notification
                                                     Address == reference.Address &&
                                                     WatchCycle == reference.WatchCycle;
 
-        public bool Equals(PlcWatchReference other) => other != null &&
-                                                    Mapping == other.Mapping &&
+        public bool Equals(PlcWatchReference other) => Mapping == other.Mapping &&
                                                     Variable == other.Variable &&
                                                     Address == other.Address &&
                                                     WatchCycle == other.WatchCycle;
 
         public override int GetHashCode()
         {
-            var hashCode = -1177666424;
-            hashCode = hashCode * -1521134295 + _dot.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Mapping);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Variable);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Address);
-            hashCode = hashCode * -1521134295 + WatchCycle.GetHashCode();
-            return hashCode;
+            return System.HashCode.Combine(_dot, Mapping, Variable, Address, WatchCycle);
         }
 
         public static bool operator ==(PlcWatchReference left, PlcWatchReference right) => left.Equals(right);

@@ -1,8 +1,7 @@
 ﻿using Papper.Extensions.Metadata;
 using Papper.Extensions.Notification;
 using Papper.Tests.Mappings;
-using Papper.Tests.Util;
-using PapperTests.Mappings;
+using Papper.Tests.Mappings.ChargenRV2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +12,8 @@ using Xunit.Abstractions;
 
 namespace Papper.Tests
 {
+
+    [Collection("Sequential")]
     public sealed class SymbolicSubscriptionTests : IDisposable
     {
         private static readonly Dictionary<string, object> _mockPlc = new();

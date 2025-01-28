@@ -7,6 +7,11 @@ namespace Papper.Types
     {
         // Use share size for this data type, we will never change the size
         private static readonly PlcSize _size = new() { Bytes = 2 };
+
+        private static readonly TimeSpan _minValue = TimeSpan.Zero;
+        private static readonly TimeSpan _maxValue = new(2, 46, 30, 0);
+
+
         public override Type DotNetType => typeof(TimeSpan);
         public PlcS5Time(string name) :
             base(name) => Size = _size;
@@ -15,7 +20,7 @@ namespace Papper.Types
         {
             if (data.IsEmpty)
             {
-                return TimeSpan.MinValue;
+                return TimeSpan.Zero;
             }
             var w1 = data[plcObjectBinding.Offset + 1].GetBcdByte();
             var idx0Value = data[plcObjectBinding.Offset];
@@ -41,9 +46,21 @@ namespace Papper.Types
             return new TimeSpan(number);  // Is this really correct?
         }
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
-            var time = (TimeSpan)value;
+            var time = value is TimeSpan ts ? ts : TimeSpan.Zero;
+
+            if(time < _minValue)
+            {
+                time = _minValue;
+            }
+            else if(time > _maxValue)
+            {
+                time = _maxValue;
+            }
+
+
+
             byte valueBase;
             int val;
 

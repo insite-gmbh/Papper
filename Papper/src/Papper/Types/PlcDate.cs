@@ -18,7 +18,18 @@ namespace Papper.Types
         public override object ConvertFromRaw(PlcObjectBinding plcObjectBinding, Span<byte> data)
             => data.IsEmpty ? _epochTime : _epochTime.AddDays(BinaryPrimitives.ReadUInt16BigEndian(data.Slice(plcObjectBinding.Offset)));
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
-            => BinaryPrimitives.WriteUInt16BigEndian(data.Slice(plcObjectBinding.Offset), Convert.ToUInt16(((DateTime)value).Subtract(_epochTime).Days));
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        {
+            if(value is DateTime dt)
+            {
+                BinaryPrimitives.WriteUInt16BigEndian(data[plcObjectBinding.Offset..], 
+                                                      Convert.ToUInt16(dt.Subtract(_epochTime).Days));
+            }
+            else
+            {
+                BinaryPrimitives.WriteUInt16BigEndian(data[plcObjectBinding.Offset..],
+                                      Convert.ToUInt16(0));
+            }
+        }
     }
 }

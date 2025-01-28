@@ -12,41 +12,6 @@ namespace Papper
     {
         private const string _hexDigits = "0123456789ABCDEF";
 
-        /// <summary>
-        /// Reads an Single out of a read-only span of bytes as big endian.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ReadSingleBigEndian(ReadOnlySpan<byte> buffer)
-        {
-            var result = new Span<byte>(buffer.ToArray());
-
-            if (BitConverter.IsLittleEndian)
-            {
-                result.Reverse();
-            }
-
-            return BitConverter.ToSingle(result.ToArray(), 0); ;
-
-        }
-
-        /// <summary>
-        /// Writes an Single into a span of bytes as big endian.
-        /// </summary>
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteSingleBigEndian(Span<byte> buffer, float value)
-        {
-            var bytes = BitConverter.GetBytes(value).AsSpan();
-            if (BitConverter.IsLittleEndian)
-            {
-                if (BitConverter.IsLittleEndian)
-                {
-                    bytes.Reverse();
-                }
-            }
-            bytes.CopyTo(buffer);
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ReadBit(ReadOnlySpan<byte> buffer, int bit) => (((byte)(buffer[0] >> bit)) & 1) == 1;
 
@@ -88,10 +53,7 @@ namespace Papper
         /// <returns></returns>
         public static bool SequenceEqual<TSource>(this IEnumerable<TSource>? first, int firstStartIndex, IEnumerable<TSource>? second, int secondStartIndex, int length = -1, IEqualityComparer<TSource>? comparer = null)
         {
-            if (comparer == null)
-            {
-                comparer = EqualityComparer<TSource>.Default;
-            };
+            comparer ??= EqualityComparer<TSource>.Default;;
             if (first == null)
             {
                 ExceptionThrowHelper.ThrowArgumentNullException(nameof(first));
@@ -183,6 +145,11 @@ namespace Papper
         /// <returns></returns>
         public static byte[] ToByteArray<T>(this T value, int maxLength)
         {
+            if(value == null)
+            {
+                return new byte[maxLength];
+            }
+
             if (value is string str)
             {
                 return Encoding.UTF7.GetBytes(str).SubArray(0, maxLength);
@@ -208,7 +175,7 @@ namespace Papper
         /// <typeparam name="T"></typeparam>
         /// <param name="rawValue"></param>
         /// <returns></returns>
-        public static T FromByteArray<T>(this byte[] rawValue)
+        public static T? FromByteArray<T>(this byte[] rawValue)
         {
             var handle = GCHandle.Alloc(rawValue, GCHandleType.Pinned);
             var structure = Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
@@ -521,7 +488,7 @@ namespace Papper
         /// <returns></returns>
         public static bool IsInHexFormat(this string hexString) => hexString.All(IsHexDigit);
 
-        private static bool IsHexDigit(char c) => _hexDigits.IndexOf(c) >= 0;
+        private static bool IsHexDigit(char c) => _hexDigits.Contains(c);
 
         /// <summary>
         /// Creates a byte array from the hexadecimal string. Each two characters are combined

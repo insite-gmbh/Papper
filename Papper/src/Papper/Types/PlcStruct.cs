@@ -23,30 +23,34 @@ namespace Papper.Types
                     var first = Childs.OfType<PlcObject>().FirstOrDefault();
                     var last = Childs.OfType<PlcObject>().LastOrDefault();
 
-                    if (first != last)
+                    if (first != null && last != null)
                     {
-                        var fixe1 = last.Size == null || last.Size.Bytes == 0;
-                        byteOffset = (last.Offset.Bytes + (fixe1 ? 1 : last.Size!.Bytes)) - first.Offset.Bytes;
 
-                        if(!fixe1 && last.BitSize > 0)
+                        if (first != last)
+                        {
+                            var fixe1 = last.Size == null || last.Size.Bytes == 0;
+                            byteOffset = (last.Offset.Bytes + (fixe1 ? 1 : last.Size!.Bytes)) - first.Offset.Bytes;
+
+                            if (!fixe1 && last.BitSize > 0)
+                            {
+                                byteOffset += 1;
+                            }
+                        }
+                        else
+                        {
+                            var fixe1 = first.Size == null || first.Size.Bytes == 0;
+                            byteOffset = fixe1 ? 1 : first.Size!.Bytes;
+
+                            if (!fixe1 && first.BitSize > 0)
+                            {
+                                byteOffset += 1;
+                            }
+                        }
+
+                        if (byteOffset % 2 == 1)
                         {
                             byteOffset += 1;
                         }
-                    }
-                    else
-                    {
-                        var fixe1 = first.Size == null || first.Size.Bytes == 0;
-                        byteOffset = fixe1 ? 1 : first.Size!.Bytes;
-
-                        if (!fixe1 && first.BitSize > 0)
-                        {
-                            byteOffset += 1;
-                        }
-                    }
-
-                    if (byteOffset % 2 == 1)
-                    {
-                        byteOffset += 1;
                     }
                 }
 
@@ -82,11 +86,11 @@ namespace Papper.Types
                     var binding = new PlcObjectBinding(plcObjectBinding.RawData, child, plcObjectBinding.Offset + child.Offset.Bytes, plcObjectBinding.ValidationTimeInMs, true);
                     prop?.SetValue(obj, child.ConvertFromRaw(binding, data));
                 }
-                return obj;
+                return obj!;
             }
         }
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
             if (value != null)
             {
@@ -118,12 +122,12 @@ namespace Papper.Types
             }
         }
 
-        private static IDictionary<string, object> GetKeyValuePairs(object value)
+        private static IDictionary<string, object?> GetKeyValuePairs(object value)
         {
             //var dyn = value as DynamicPlcObject;
             //if (dyn != null)
             //    return dyn.ToDictionary();
-            var dictionary = value as IDictionary<string, object>;
+            var dictionary = value as IDictionary<string, object?>;
             return dictionary ?? value.GetType().GetProperties().ToDictionary(x => x.Name, x => x.GetValue(value));
         }
     }

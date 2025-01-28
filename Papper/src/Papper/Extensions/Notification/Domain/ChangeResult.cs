@@ -33,19 +33,14 @@ namespace Papper
 
         public override int GetHashCode()
         {
-            var hashCode = -239268687;
-            hashCode = hashCode * -1521134295 + IsCanceled.GetHashCode();
-            hashCode = hashCode * -1521134295 + IsCompleted.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<IEnumerable<PlcReadResult>?>.Default.GetHashCode(Results);
-            return hashCode;
+            return System.HashCode.Combine(IsCanceled, IsCompleted, Results);
         }
 
         public static bool operator ==(ChangeResult left, ChangeResult right) => left.Equals(right);
 
         public static bool operator !=(ChangeResult left, ChangeResult right) => !(left == right);
 
-        public bool Equals(ChangeResult other) => other != null &&
-                                                    IsCanceled == other.IsCanceled &&
+        public bool Equals(ChangeResult other) => IsCanceled == other.IsCanceled &&
                                                     IsCompleted == other.IsCompleted &&
                                                     EqualityComparer<IEnumerable<PlcReadResult>?>.Default.Equals(Results, other.Results);
     }

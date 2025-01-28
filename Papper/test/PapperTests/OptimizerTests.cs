@@ -11,6 +11,7 @@ namespace Papper.Tests
     public class OptimizerTests
     {
         [Theory]
+        [InlineData(OptimizerType.Block, typeof(MultiTest_DB), 1, "MultiTest_DB", 100, "", "", "")]
         [InlineData(OptimizerType.Block, typeof(DB_MotionHMI), 2, "DB_MotionHMI", 100, "HMI.TogglePLC", "HMI.SelectedLine", "HMI.MotionLine[8].Txt.DirectionRight")]
         [InlineData(OptimizerType.Items, typeof(DB_MotionHMI), 3, "DB_MotionHMI", 100, "HMI.TogglePLC", "HMI.SelectedLine", "HMI.MotionLine[8].Txt.DirectionRight")]
         [InlineData(OptimizerType.Block, typeof(DB_MotionHMI), 1, "DB_MotionHMI", 100, "HMI.MotionLine[8].MotionState.Final_Position[0]", "HMI.MotionLine[8].MotionState.Display_Order[0]", "HMI.MotionLine[8].AccessRightReqFromHmiId")]

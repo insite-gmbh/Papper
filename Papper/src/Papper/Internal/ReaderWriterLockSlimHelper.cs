@@ -28,7 +28,7 @@ namespace Papper.Internal
         {
             if (IsDisposed)
             {
-                ExceptionThrowHelper.ThrowObjectDisposedException(ToString());
+                ExceptionThrowHelper.ThrowObjectDisposedException(ToString() ?? string.Empty);
             }
 
             _readerWriterLock?.ExitWriteLock();
@@ -68,11 +68,7 @@ namespace Papper.Internal
         }
         public IDisposable UpgradeToWriterLock()
         {
-            if (_upgradedLock == null)
-            {
-                _upgradedLock = new UpgradedGuard(this);
-            }
-            return _upgradedLock;
+            return _upgradedLock ??= new UpgradedGuard(this);
         }
         public void Dispose()
         {

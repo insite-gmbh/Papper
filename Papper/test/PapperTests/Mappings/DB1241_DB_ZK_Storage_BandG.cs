@@ -3,7 +3,7 @@
 using Papper.Attributes;
 using System;
 
-namespace Insite.Customer.Data.DB_ZK_Storage_BandG
+namespace Papper.Tests.Mappings
 {
     
     

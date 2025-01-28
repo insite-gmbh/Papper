@@ -3,7 +3,7 @@
 using Papper.Attributes;
 using System;
 
-namespace Insite.Customer.Data.DB_SpindlePos_BST1
+namespace Papper.Tests.Mappings
 {
     
     

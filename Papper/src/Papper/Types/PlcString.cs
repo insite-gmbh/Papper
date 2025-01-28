@@ -54,7 +54,7 @@ namespace Papper.Types
             }
         }
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
             var maxLength = Convert.ToByte(Size!.Bytes - 2);
             var i = plcObjectBinding.Offset;
@@ -62,10 +62,10 @@ namespace Papper.Types
             var fill = string.Empty;
             if (value != null)
             {
-                var str = value.ToString();
+                var str = value.ToString() ?? string.Empty;
                 var curLength = Convert.ToByte(str.Length);
                 var take = Math.Min(maxLength, curLength);
-                fill = str.Substring(0, take);
+                fill = str[..take];
 
                 data[i++] = take;
                 var encoding = PlcEncoding.Default;

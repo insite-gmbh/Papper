@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PapperTests.Mappings
+namespace Papper.Tests.Mappings
 {
     [Mapping("SampleData", "DB909", 0)]
     public class SampleData

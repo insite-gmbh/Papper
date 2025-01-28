@@ -18,6 +18,8 @@ namespace Papper
 
         public static void ThrowMappingAttributeNotFoundForTypeException(Type type) => throw new ArgumentException($"The given type {type}  has no MappingAttribute", nameof(type));
 
+        public static void ThrowMappingAttributeNotFoundForPlcTypeNameException(string type) => throw new ArgumentException($"The given type {type}  has no MappingAttribute", nameof(type));
+
         public static void ThrowInvalidVariableException(string variable) => throw new InvalidVariableException(variable);
 
         public static void ThrowArrayIndexExeption(int index) => throw new IndexOutOfRangeException($"PlcArrayError (unknown index {index})");

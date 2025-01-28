@@ -69,7 +69,7 @@ namespace Papper.Types
 
 
         public abstract object ConvertFromRaw(PlcObjectBinding plcObjectBinding, Span<byte> data);
-        public abstract void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data);
+        public abstract void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data);
 
         public virtual object? StringToObject(string value)
         {

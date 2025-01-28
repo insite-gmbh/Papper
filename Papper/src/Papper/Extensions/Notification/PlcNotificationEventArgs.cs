@@ -72,72 +72,75 @@ namespace Papper.Extensions.Notification
         {
             var item = new ExpandoObject();
             var asterix = mapping == "*";
-            foreach (var items in _changedItems.Where(i => asterix || i.IsPartOfMapping(mapping)))
+            if (_changedItems != null)
             {
-                var levels = asterix ? items.Address.Split('.') : items.Variable.Split('.');
-                var levelCount = levels.Length;
-                ExpandoObject? parent = item;
-                foreach (var level in levels)
+                foreach (var items in _changedItems.Where(i => asterix || i.IsPartOfMapping(mapping)))
                 {
-                    var name = level;
-                    levelCount--;
-                    if (levelCount == 0 && (!resolveDoubleUsedValues || !name.Contains("[")))
+                    var levels = asterix ? items.Address.Split('.') : items.Variable.Split('.');
+                    var levelCount = levels.Length;
+                    ExpandoObject? parent = item;
+                    foreach (var level in levels)
                     {
-                        AddProperty(parent, name, items.Value);
-                    }
-                    else if (levelCount == 0 && resolveDoubleUsedValues)
-                    {
-                        var withoutIndex = name.Substring(0, name.IndexOf("[", StringComparison.Ordinal));
-
-                        var obj = GetPropertyValue(item, withoutIndex);
-                        if (obj is Array)
+                        var name = level;
+                        levelCount--;
+                        if (levelCount == 0 && (!resolveDoubleUsedValues || !name.Contains("[")))
                         {
-                            obj = new ExpandoObject();
-                            AddProperty(parent, withoutIndex, obj);
+                            AddProperty(parent, name, items.Value);
                         }
-                        parent = obj;
-
-                        var index = name.Substring(withoutIndex.Length).Trim(new char[] { '[', ']' });
-                        obj = GetPropertyValue(parent, index);
-                        if (obj == null)
+                        else if (levelCount == 0 && resolveDoubleUsedValues)
                         {
-                            obj = new ExpandoObject();
-                            AddProperty(parent, index, obj);
-                        }
-                        parent = obj;
+                            var withoutIndex = name[..name.IndexOf("[", StringComparison.Ordinal)];
 
-                        AddProperty(parent, index, items.Value);
-                    }
-                    else if (name.Contains("["))
-                    {
-                        var withoutIndex = name.Substring(0, name.IndexOf("[", StringComparison.Ordinal));
+                            var obj = GetPropertyValue(item, withoutIndex);
+                            if (obj is Array)
+                            {
+                                obj = new ExpandoObject();
+                                AddProperty(parent, withoutIndex, obj);
+                            }
+                            parent = obj;
 
-                        var obj = GetPropertyValue(item, withoutIndex);
-                        if (obj == null)
-                        {
-                            obj = new ExpandoObject();
-                            AddProperty(parent, withoutIndex, obj);
-                        }
-                        parent = obj;
+                            var index = name[withoutIndex.Length..].Trim(new char[] { '[', ']' });
+                            obj = GetPropertyValue(parent, index);
+                            if (obj == null)
+                            {
+                                obj = new ExpandoObject();
+                                AddProperty(parent, index, obj);
+                            }
+                            parent = obj;
 
-                        var index = name.Substring(withoutIndex.Length).Trim(new char[] { '[', ']' });
-                        obj = GetPropertyValue(parent, index);
-                        if (obj == null)
-                        {
-                            obj = new ExpandoObject();
-                            AddProperty(parent, index, obj);
+                            AddProperty(parent, index, items.Value);
                         }
-                        parent = obj;
-                    }
-                    else
-                    {
-                        var obj = GetPropertyValue(item, name);
-                        if (obj == null)
+                        else if (name.Contains("["))
                         {
-                            obj = new ExpandoObject();
-                            AddProperty(parent, name, obj);
+                            var withoutIndex = name[..name.IndexOf("[", StringComparison.Ordinal)];
+
+                            var obj = GetPropertyValue(item, withoutIndex);
+                            if (obj == null)
+                            {
+                                obj = new ExpandoObject();
+                                AddProperty(parent, withoutIndex, obj);
+                            }
+                            parent = obj;
+
+                            var index = name[withoutIndex.Length..].Trim(new char[] { '[', ']' });
+                            obj = GetPropertyValue(parent, index);
+                            if (obj == null)
+                            {
+                                obj = new ExpandoObject();
+                                AddProperty(parent, index, obj);
+                            }
+                            parent = obj;
                         }
-                        parent = obj;
+                        else
+                        {
+                            var obj = GetPropertyValue(item, name);
+                            if (obj == null)
+                            {
+                                obj = new ExpandoObject();
+                                AddProperty(parent, name, obj);
+                            }
+                            parent = obj;
+                        }
                     }
                 }
             }

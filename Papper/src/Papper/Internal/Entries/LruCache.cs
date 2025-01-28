@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Papper.Internal
@@ -8,7 +9,8 @@ namespace Papper.Internal
     {
         private readonly Dictionary<string, LruState> _states = new();
 
-        public bool TryGetValue(string key, out LruState state) => _states.TryGetValue(key, out state);
+        public bool TryGetValue(string key, [MaybeNullWhen(false)] out LruState state) 
+            => _states.TryGetValue(key, out state);
 
         public LruState Create(string key, Memory<byte> data, DateTime detect, int validationTime)
         {

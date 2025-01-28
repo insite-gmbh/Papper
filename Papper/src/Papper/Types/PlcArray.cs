@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Papper.Types
 {
@@ -17,6 +19,7 @@ namespace Papper.Types
         private readonly Dictionary<Type, object> _typeInstances = new();
         private readonly Dictionary<int, ITreeNode> _indexCache = new();
         private readonly PlcSize _size = new();
+        private static readonly Regex _regexSplitBy = new("[\\]]{1}(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))", RegexOptions.Compiled);
         private PlcObject _arrayType;
         private int _from;
         private int _to;
@@ -168,6 +171,15 @@ namespace Papper.Types
 
             if (type == typeof(PlcArray))
             {
+                if (plcObjectBinding.FullType && plcObjectBinding.MetaData.ElemenType != null)
+                {
+                    if (!_typeInstances.TryGetValue(plcObjectBinding.MetaData.ElemenType, out var instance))
+                    {
+                        instance = Activator.CreateInstance(plcObjectBinding.MetaData.ElemenType);
+                        _typeInstances.Add(plcObjectBinding.MetaData.ElemenType, instance);
+                    }
+                    return InternalConvert(plcObjectBinding, instance ?? null, data, true, plcObjectBinding.MetaData.ElemenType);
+                }
                 return ArrayType.ConvertFromRaw(plcObjectBinding, data);
             }
 
@@ -176,7 +188,10 @@ namespace Papper.Types
                 if (!_typeInstances.TryGetValue(plcObjectBinding.MetaData.ElemenType, out var instance))
                 {
                     instance = Activator.CreateInstance(plcObjectBinding.MetaData.ElemenType);
-                    _typeInstances.Add(plcObjectBinding.MetaData.ElemenType, instance);
+                    if (instance != null)
+                    {
+                        _typeInstances.Add(plcObjectBinding.MetaData.ElemenType, instance);
+                    }
                 }
 
                 return InternalConvert(plcObjectBinding, instance ?? null, data, true, plcObjectBinding.MetaData.ElemenType);
@@ -186,7 +201,7 @@ namespace Papper.Types
         }
 
 
-        public override void ConvertToRaw(object value, PlcObjectBinding plcObjectBinding, Span<byte> data)
+        public override void ConvertToRaw(object? value, PlcObjectBinding plcObjectBinding, Span<byte> data)
         {
             var list = value as IEnumerable;
             var type = ArrayType.GetType();
@@ -288,7 +303,7 @@ namespace Papper.Types
                 else if (fully && t != null)
                 {
                     //Special handling for object types
-                    var list = Array.CreateInstance(t, ArrayLength);
+                    Array? list = null;
                     var idx = From;
                     var childEnumerator = Childs.OfType<PlcObject>().GetEnumerator();
                     for (var i = 0; i < ArrayLength; i++)
@@ -300,10 +315,24 @@ namespace Papper.Types
 
                         var child = childEnumerator.Current;
                         var binding = new PlcObjectBinding(plcObjectBinding.RawData, child, plcObjectBinding.Offset + child.Offset.Bytes + ((idx - From) * GetElementSizeForOffset()), plcObjectBinding.ValidationTimeInMs, fully);
-                        list.SetValue(((T)ArrayType.ConvertFromRaw(binding, data)), i);
+                        var element = ((T)ArrayType.ConvertFromRaw(binding, data));
+
+                        if (list == null)
+                        {
+                            if (element is IList l)
+                            {
+                                list = Array.CreateInstance(l.GetType(), ArrayLength);
+                            }
+                            else
+                            {
+                                list = Array.CreateInstance(t, ArrayLength);
+                            }
+                        }
+
+                        list.SetValue(element, i);
                         idx++;
                     }
-                    return list;
+                    return list ?? Array.CreateInstance(t, ArrayLength);
                 }
                 else
                 {
@@ -447,7 +476,8 @@ namespace Papper.Types
             {
                 var nodes = new List<string>();
                 var first = path.Nodes.First();
-                nodes.Add(first.Substring(first.IndexOf(']') + 1));
+                Match firstMatch = _regexSplitBy.Match(first);
+                nodes.Add(first[(firstMatch.Index + 1)..]);
                 nodes.AddRange(path.Nodes.Skip(1));
                 return new PlcMetaDataTreePath(nodes.Aggregate((a, b) => a + PlcMetaDataTreePath.Separator + b));
             }
@@ -459,7 +489,7 @@ namespace Papper.Types
 
         public override void Accept(VisitNode visit) => base.Accept(visit);
 
-        private void CalculateSize()
+        public void CalculateSize()
         {
             var isBoolean = _arrayType is PlcBool || _arrayType.Size == null;
             Size.Bits = isBoolean ? ArrayLength * _arrayType.Size!.Bits : 0;

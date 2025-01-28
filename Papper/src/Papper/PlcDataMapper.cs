@@ -5,6 +5,7 @@ using Papper.Extensions.Notification;
 using Papper.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -256,6 +257,7 @@ namespace Papper
             if (type == null)
             {
                 ExceptionThrowHelper.ThrowArgumentNullException<Type>(nameof(type));
+                return false;
             }
 
             var mappingAttributes = type.GetTypeInfo().GetCustomAttributes<MappingAttribute>().ToList();
@@ -356,7 +358,7 @@ namespace Papper
         #endregion
 
 
-        private bool GetMapping(string mapping, out IEntry entry, bool allowAdd = true)
+        private bool GetMapping(string mapping, [MaybeNullWhen(false)] out IEntry entry, bool allowAdd = true)
         {
             if (EntriesByName.TryGetValue(mapping, out entry))
             {

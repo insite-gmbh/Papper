@@ -1,6 +1,6 @@
 ﻿using Papper.Attributes;
 
-namespace PapperTests.Mappings
+namespace Papper.Tests.Mappings
 {
     [Mapping("PrimitiveValuesMapping", "DB99", 0)]
     public class PrimitiveValuesMapping

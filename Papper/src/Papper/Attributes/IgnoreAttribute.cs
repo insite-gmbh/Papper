@@ -1,23 +1,13 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="ReadOnlyAttribute.cs" company="Microsoft">
-//     Copyright (c) Microsoft Corporation.  All rights reserved.
-//     Modified to use in DNX  from Benjamin Proemmer
-// </copyright>                                                                
-//------------------------------------------------------------------------------
-
-/*
- */
-using System;
-
+﻿using System;
 
 namespace Papper.Attributes
 {
-    /// <devdoc>
-    ///    <para>Specifies whether the property this attribute is bound to
-    ///       is read-only or read/write.</para>
-    /// </devdoc>
-    [AttributeUsage(AttributeTargets.All)]
-    public sealed class ReadOnlyAttribute : Attribute
+
+    /// <summary>
+    /// Validation attribute to assert a string property, field or parameter does not exceed a maximum length
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class IgnoreAttribute : Attribute
     {
 
         /// <devdoc>
@@ -27,7 +17,7 @@ namespace Papper.Attributes
         ///       read-only.
         ///    </para>
         /// </devdoc>
-        public static readonly ReadOnlyAttribute Yes = new(true);
+        public static readonly IgnoreAttribute Yes = new(true);
 
         /// <devdoc>
         ///    <para>
@@ -35,22 +25,22 @@ namespace Papper.Attributes
         ///       be modified at design time. This <see langword='static '/>field is read-only.
         ///    </para>
         /// </devdoc>
-        public static readonly ReadOnlyAttribute No = new(false);
+        public static readonly IgnoreAttribute No = new(false);
 
         /// <devdoc>
         ///    <para>
-        ///       Specifies the default value for the <see cref='System.ComponentModel.ReadOnlyAttribute'/> , which is <see cref='System.ComponentModel.ReadOnlyAttribute.No'/>, that is,
+        ///       Specifies the default value for the <see cref='System.ComponentModel.IgnoreAttribute'/> , which is <see cref='System.ComponentModel.IgnoreAttribute.No'/>, that is,
         ///       the property this attribute is bound to is read/write. This <see langword='static'/> field is read-only.
         ///    </para>
         /// </devdoc>
-        public static readonly ReadOnlyAttribute Default = No;
+        public static readonly IgnoreAttribute Default = No;
 
         /// <devdoc>
         ///    <para>
-        ///       Initializes a new instance of the <see cref='System.ComponentModel.ReadOnlyAttribute'/> class.
+        ///       Initializes a new instance of the <see cref='System.ComponentModel.IgnoreAttribute'/> class.
         ///    </para>
         /// </devdoc>
-        public ReadOnlyAttribute(bool isReadOnly) => IsReadOnly = isReadOnly;
+        public IgnoreAttribute(bool isIgnored = true) => IsIgnored = isIgnored;
 
         /// <devdoc>
         ///    <para>
@@ -58,7 +48,7 @@ namespace Papper.Attributes
         ///       read-only.
         ///    </para>
         /// </devdoc>
-        public bool IsReadOnly { get; } = false;
+        public bool IsIgnored { get; } = false;
 
         /// <internalonly/>
         /// <devdoc>
@@ -70,7 +60,7 @@ namespace Papper.Attributes
                 return true;
             }
 
-            return value is ReadOnlyAttribute other && other.IsReadOnly == IsReadOnly;
+            return value is IgnoreAttribute other && other.IsIgnored == IsIgnored;
         }
 
         /// <devdoc>
